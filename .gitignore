@@ -1,0 +1,4 @@
+package-lock.json
+.history
+.env
+node_modules
