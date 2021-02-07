@@ -1,7 +1,7 @@
 import express from "express"
 import "express-async-errors"
 import cookieSession from "cookie-session"
-import { errorHandler, NotFoundError } from "@vanguardo/common"
+import { errorHandler, NotFoundError, currentUser } from "@vanguardo/common"
 
 import * as router from "./routes"
 
@@ -12,12 +12,13 @@ app.use(
   cookieSession({
     signed: false,
     secure: process.env.NODE_ENV !== "test",
-    name: process.env.SESSION_NAME
+    name: "x76s26"
   })
 )
+app.use(currentUser)
 
 Object.values(router).forEach(routerItem => {
-  // app.use(routerItem)
+  app.use(routerItem)
 })
 
 app.all("*", async (req, res, next) => {

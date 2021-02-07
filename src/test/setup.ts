@@ -1,13 +1,14 @@
 import { MongoMemoryServer } from "mongodb-memory-server"
 import mongoose from "mongoose"
 import request from "supertest"
+import jwt from "jsonwebtoken"
 
 import { app } from "../app"
 
 declare global {
   namespace NodeJS {
     interface Global {
-      signin(): Promise<string[]>
+      signin(): string[]
     }
   }
 }
@@ -15,6 +16,7 @@ declare global {
 let mongo: any
 
 beforeAll(async () => {
+  process.env.JWT_SECRET = "dsfdgdfshgfhfadg"
   mongo = new MongoMemoryServer()
   const mongoUri = await mongo.getUri()
 
@@ -37,16 +39,16 @@ afterAll(async () => {
   await mongoose.connection.close()
 })
 
-global.signin = async () => {
-  const email = "test@test.com"
-  const password = "password"
+global.signin = () => {
+  const payload = { email: "test@test.com", id: 1 }
 
-  const response = await request(app)
-    .post("/api/users/sign-up")
-    .send({ email, password })
-    .expect(201)
+  const token = jwt.sign(payload, process.env.JWT_SECRET!)
 
-  const cookie = response.get("Set-Cookie")
+  const session = { jwt: token }
 
-  return cookie
+  const sessionJSON = JSON.stringify(session)
+
+  const base64 = Buffer.from(sessionJSON).toString("base64")
+
+  return [`x76s26=${base64}`]
 }
