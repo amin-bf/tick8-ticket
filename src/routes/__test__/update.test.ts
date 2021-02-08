@@ -3,6 +3,7 @@ import mongoose from "mongoose"
 
 import { app } from "../../app"
 import { Ticket } from "../../models/ticket"
+import { natsWrapper } from "../../nats-wrapper"
 
 it("has a route handler to listen on /api/tickets put requests", async () => {
   const id = new mongoose.Types.ObjectId()
@@ -116,4 +117,27 @@ it("will succeed provided valid parameters", async () => {
 
   expect(response.body.title).toEqual("new title")
   expect(response.body.price).toEqual(100)
+})
+
+it("Publishes an event", async () => {
+  const ticket = Ticket.build({
+    price: 3000,
+    title: "concert",
+    userId: "1"
+  })
+
+  await ticket.save()
+
+  const cookie = global.signin()
+
+  let response = await request(app)
+    .put(`/api/tickets/${ticket.id}`)
+    .set("Cookie", cookie)
+    .send({
+      title: "new title",
+      price: 100
+    })
+    .expect(200)
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled()
 })

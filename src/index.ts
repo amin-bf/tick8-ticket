@@ -11,8 +11,19 @@ const start = async () => {
     throw new Error("JWT_SECRET environment variable missing")
   if (!process.env.MONGO_URI)
     throw new Error("MONGO_URI environment variable missing")
+  if (!process.env.NATS_URL)
+    throw new Error("NATS_URL environment variable missing")
+  if (!process.env.NATS_CLUSTER_ID)
+    throw new Error("NATS_CLUSTER_ID environment variable missing")
+  if (!process.env.NATS_CLIENT_ID)
+    throw new Error("NATS_CLIENT_ID environment variable missing")
+
   try {
-    await natsWrapper.connect("tick8", "ticket-service", "http://nats-srv:4222")
+    await natsWrapper.connect(
+      process.env.NATS_CLUSTER_ID,
+      process.env.NATS_CLIENT_ID,
+      process.env.NATS_URL
+    )
 
     natsWrapper.client.on("close", () => {
       console.log("NATS connection closed!")
